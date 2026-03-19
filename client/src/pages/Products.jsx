@@ -104,8 +104,12 @@ export default function Products() {
               {products.map(product => (
                 <div key={product._id} className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden group">
                   {/* Image */}
-                  <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-44 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform">
-                    {product.image || "📦"}
+                  <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-44 flex items-center justify-center overflow-hidden rounded-t-2xl">
+                    {product.image && product.image.startsWith("http") ? (
+                      <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform" />
+                    ) : (
+                      <span className="text-6xl group-hover:scale-110 transition-transform">{product.image || "📦"}</span>
+                    )}
                   </div>
 
                   {/* Info */}
@@ -151,3 +155,4 @@ export default function Products() {
     </div>
   );
 }
+

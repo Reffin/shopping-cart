@@ -17,6 +17,7 @@ export default function Admin({ onNavigate }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -32,6 +33,29 @@ export default function Admin({ onNavigate }) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const res = await fetch("http://localhost:5000/api/products/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setForm(prev => ({ ...prev, image: data.url }));
+    } catch (err) {
+      setError("Image upload failed: " + err.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -172,16 +196,48 @@ export default function Admin({ onNavigate }) {
                     <label className="text-sm font-semibold text-gray-600 mb-1 block">Description</label>
                     <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required placeholder="Product description..." rows={3} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 resize-none" />
                   </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 block">Image (emoji or URL)</label>
-                    <input value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} placeholder="📱 or https://..." className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400" />
+
+                  {/* Image Upload */}
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-semibold text-gray-600 mb-1 block">Product Image</label>
+                    <div className="space-y-2">
+                      {/* Image Preview */}
+                      {form.image && (
+                        <div className="w-24 h-24 rounded-xl overflow-hidden bg-orange-50 flex items-center justify-center text-4xl border border-gray-200">
+                          {form.image.startsWith("http") ? (
+                            <img src={form.image} alt="preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <span>{form.image}</span>
+                          )}
+                        </div>
+                      )}
+                      {/* Upload Button */}
+                      <div className="flex items-center gap-2">
+                        <label className="cursor-pointer bg-orange-50 hover:bg-orange-100 text-orange-600 font-semibold text-sm px-4 py-2 rounded-xl transition-colors border border-orange-200">
+                          {uploading ? "Uploading..." : "📁 Upload Image"}
+                          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                        </label>
+                        {form.image && form.image.startsWith("http") && (
+                          <span className="text-xs text-green-600 font-semibold">✓ Image uploaded!</span>
+                        )}
+                      </div>
+                      {/* OR Emoji Input */}
+                      <input
+                        value={form.image.startsWith("http") ? "" : form.image}
+                        onChange={e => setForm({ ...form, image: e.target.value })}
+                        placeholder="Or type an emoji e.g. 📱"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400"
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 pt-6">
+
+                  <div className="flex items-center gap-3">
                     <input type="checkbox" id="featured" checked={form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} className="w-4 h-4 accent-orange-500" />
                     <label htmlFor="featured" className="text-sm font-semibold text-gray-600">Featured on Homepage</label>
                   </div>
+
                   <div className="md:col-span-2 flex gap-3">
-                    <button type="submit" disabled={saving} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition-all">
+                    <button type="submit" disabled={saving || uploading} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition-all">
                       {saving ? "Saving..." : editing ? "Update Product" : "Add Product"}
                     </button>
                     <button type="button" onClick={() => { setShowForm(false); setEditing(null); setForm(EMPTY_FORM); }} className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-6 py-2.5 rounded-xl transition-all">
@@ -216,8 +272,12 @@ export default function Admin({ onNavigate }) {
                         <tr key={product._id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
-                                {product.image || "📦"}
+                              <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
+                                {product.image && product.image.startsWith("http") ? (
+                                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span>{product.image || "📦"}</span>
+                                )}
                               </div>
                               <div>
                                 <p className="font-semibold text-gray-800 text-sm">{product.name}</p>
@@ -239,12 +299,8 @@ export default function Admin({ onNavigate }) {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex gap-2">
-                              <button onClick={() => handleEdit(product)} className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold px-3 py-1.5 rounded-lg transition-colors">
-                                Edit
-                              </button>
-                              <button onClick={() => handleDelete(product._id)} className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-lg transition-colors">
-                                Delete
-                              </button>
+                              <button onClick={() => handleEdit(product)} className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold px-3 py-1.5 rounded-lg transition-colors">Edit</button>
+                              <button onClick={() => handleDelete(product._id)} className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-lg transition-colors">Delete</button>
                             </div>
                           </td>
                         </tr>

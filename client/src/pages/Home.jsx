@@ -68,7 +68,7 @@ export default function Home({ onNavigate }) {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: "🚚", title: "Free Shipping", desc: "On orders over $50" },
+            { icon: "🚚", title: "Free Shipping", desc: "On orders over ₱50" },
             { icon: "↩️", title: "Easy Returns", desc: "30-day return policy" },
             { icon: "🔒", title: "Secure Payment", desc: "100% protected" },
             { icon: "💬", title: "24/7 Support", desc: "Always here to help" },
@@ -118,8 +118,12 @@ export default function Home({ onNavigate }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {featured.map(product => (
               <div key={product._id} className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden group">
-                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-40 flex items-center justify-center text-6xl group-hover:scale-110 transition-transform">
-                  {product.image || "📦"}
+                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-40 flex items-center justify-center overflow-hidden rounded-t-2xl">
+                  {product.image && product.image.startsWith("http") ? (
+                    <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform" />
+                  ) : (
+                    <span className="text-6xl group-hover:scale-110 transition-transform">{product.image || "📦"}</span>
+                  )}
                 </div>
                 <div className="p-4">
                   <p className="text-xs text-orange-500 font-semibold uppercase tracking-wider mb-1">{product.category}</p>

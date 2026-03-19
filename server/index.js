@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
-const mongoSanitize = require("express-mongo-sanitize");
 const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
@@ -23,13 +22,10 @@ app.use(cors({
 }));
 
 // Parse JSON
-app.use(express.json({ limit: "10kb" })); // limit body size to 10kb
+app.use(express.json({ limit: "10kb" }));
 
-// MongoDB sanitize — prevents NoSQL injection
-// Strips $ and . from user input
-app.use(mongoSanitize());
 
-// Global rate limiter — max 100 requests per 15 minutes per IP
+// Global rate limiter
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -52,8 +48,9 @@ app.use((req, res) => res.status(404).json({ error: "Route not found" }));
 
 // ── Error handler ────────────────────────────────────────────
 app.use((err, req, res, next) => {
+  console.error("ERROR:", err.message);
   console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong" });
+  res.status(500).json({ error: err.message });
 });
 
 // ── Connect DB & Start Server ────────────────────────────────

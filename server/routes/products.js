@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Product = require("../models/Product");
 const { verifyToken, isAdmin } = require("../middleware/auth");
+const { upload, uploadToCloudinary } = require("../middleware/upload");
 
 // ── GET /api/products ─────────────────────────────────────────
 // Public - get all products with search & filter
@@ -36,6 +37,21 @@ router.get("/featured", async (req, res) => {
   try {
     const products = await Product.find({ featured: true }).limit(6);
     res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+// ── POST /api/products/upload ─────────────────────────────────
+router.post("/upload", verifyToken, isAdmin, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No image uploaded" });
+    }
+    const result = await uploadToCloudinary(req.file.buffer);
+    res.json({ url: result.secure_url });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
