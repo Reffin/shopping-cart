@@ -3,12 +3,15 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { placeOrder, formatPrice } from "../api";
 
+const BASE_URL = "https://shopping-cart-production-76db.up.railway.app/api";
+
 export default function Checkout({ onNavigate }) {
   const { cart, cartTotal, clearCart } = useCart();
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cod"); // cod or paymongo
   const [form, setForm] = useState({
     fullName: "",
     street: "",
@@ -33,9 +36,35 @@ export default function Checkout({ onNavigate }) {
         productId: i._id,
         qty: i.qty,
       }));
-      await placeOrder({ items, address: form }, token);
-      clearCart();
-      setDone(true);
+
+      // Place order first
+      const order = await placeOrder({ items, address: form }, token);
+
+      if (paymentMethod === "paymongo") {
+        // Create PayMongo payment link
+        const res = await fetch(`${BASE_URL}/payments/create-link`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            amount: Math.round(total),
+            description: `ShopZone Order #${order._id.slice(-8).toUpperCase()}`,
+            orderId: order._id,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        // Redirect to PayMongo checkout
+        clearCart();
+        window.location.href = data.checkoutUrl;
+      } else {
+        // Cash on delivery
+        clearCart();
+        setDone(true);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -78,59 +107,62 @@ export default function Checkout({ onNavigate }) {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-semibold text-gray-600 mb-1 block">Full Name</label>
-                    <input
-                      name="fullName"
-                      value={form.fullName}
-                      onChange={handleChange}
-                      required
-                      placeholder="Ryan S. Carbonel"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
-                    />
+                    <input name="fullName" value={form.fullName} onChange={handleChange} required placeholder="Ryan S. Carbonel" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors" />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-600 mb-1 block">Street Address</label>
-                    <input
-                      name="street"
-                      value={form.street}
-                      onChange={handleChange}
-                      required
-                      placeholder="123 Main Street"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
-                    />
+                    <input name="street" value={form.street} onChange={handleChange} required placeholder="123 Main Street" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-semibold text-gray-600 mb-1 block">City</label>
-                      <input
-                        name="city"
-                        value={form.city}
-                        onChange={handleChange}
-                        required
-                        placeholder="Quezon City"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
-                      />
+                      <input name="city" value={form.city} onChange={handleChange} required placeholder="Quezon City" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors" />
                     </div>
                     <div>
                       <label className="text-sm font-semibold text-gray-600 mb-1 block">ZIP Code</label>
-                      <input
-                        name="zip"
-                        value={form.zip}
-                        onChange={handleChange}
-                        required
-                        placeholder="1100"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
-                      />
+                      <input name="zip" value={form.zip} onChange={handleChange} required placeholder="1100" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Payment */}
+              {/* Payment Method */}
               <div className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="text-lg font-extrabold text-gray-800 mb-4">💳 Payment</h2>
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
-                  <p className="font-semibold mb-1">💡 Demo Mode</p>
-                  <p>This is a demo checkout. No real payment is processed.</p>
+                <h2 className="text-lg font-extrabold text-gray-800 mb-4">💳 Payment Method</h2>
+                <div className="space-y-3">
+
+                  {/* Cash on Delivery */}
+                  <div
+                    onClick={() => setPaymentMethod("cod")}
+                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "cod" ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-200"}`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "cod" ? "border-orange-500" : "border-gray-300"}`}>
+                      {paymentMethod === "cod" && <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-800">🚚 Cash on Delivery</p>
+                      <p className="text-xs text-gray-500">Pay when your order arrives</p>
+                    </div>
+                  </div>
+
+                  {/* PayMongo */}
+                  <div
+                    onClick={() => setPaymentMethod("paymongo")}
+                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "paymongo" ? "border-orange-400 bg-orange-50" : "border-gray-200 hover:border-orange-200"}`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === "paymongo" ? "border-orange-500" : "border-gray-300"}`}>
+                      {paymentMethod === "paymongo" && <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-800">💳 Online Payment</p>
+                      <p className="text-xs text-gray-500">GCash, Maya, Credit/Debit Card via PayMongo</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded">GCash</span>
+                      <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded">Maya</span>
+                      <span className="text-xs bg-gray-100 text-gray-700 font-bold px-2 py-0.5 rounded">Card</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -145,7 +177,7 @@ export default function Checkout({ onNavigate }) {
                 disabled={loading}
                 className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-all shadow-lg text-lg"
               >
-                {loading ? "Placing Order..." : "Place Order ✓"}
+                {loading ? "Processing..." : paymentMethod === "paymongo" ? "Pay with PayMongo →" : "Place Order ✓"}
               </button>
             </form>
           </div>
@@ -154,8 +186,6 @@ export default function Checkout({ onNavigate }) {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
               <h2 className="text-xl font-extrabold text-gray-800 mb-4">Order Summary</h2>
-
-              {/* Items */}
               <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                 {cart.map(item => (
                   <div key={item._id} className="flex gap-3 items-center">
@@ -174,7 +204,6 @@ export default function Checkout({ onNavigate }) {
                   </div>
                 ))}
               </div>
-
               <div className="border-t border-gray-100 pt-4 space-y-2">
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Subtotal</span>
