@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { placeOrder } from "../api";
-import { formatPrice } from "../api";
+import { placeOrder, formatPrice } from "../api";
 
 export default function Checkout({ onNavigate }) {
   const { cart, cartTotal, clearCart } = useCart();
@@ -160,14 +159,18 @@ export default function Checkout({ onNavigate }) {
               <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                 {cart.map(item => (
                   <div key={item._id} className="flex gap-3 items-center">
-                    <div className="bg-orange-50 w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
-                      {item.image || "📦"}
+                    <div className="bg-orange-50 w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
+                      {item.image && item.image.startsWith("http") ? (
+                        <img src={item.image} alt={item.name} className="w-full h-full object-contain p-1" />
+                      ) : (
+                        <span>{item.image || "📦"}</span>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
                       <p className="text-xs text-gray-500">x{item.qty}</p>
                     </div>
-                    <p className="text-sm font-bold text-gray-800">{formatPrice(item.price * item.qty)}</p>
+                    <p className="text-sm font-bold text-gray-800 flex-shrink-0">{formatPrice(item.price * item.qty)}</p>
                   </div>
                 ))}
               </div>
