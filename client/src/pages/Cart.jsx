@@ -34,8 +34,12 @@ export default function Cart({ onNavigate }) {
           <div className="lg:col-span-2 space-y-4">
             {cart.map(item => (
               <div key={item._id} className="bg-white rounded-2xl shadow-sm p-4 flex gap-4 items-center">
-                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 w-20 h-20 rounded-xl flex items-center justify-center text-4xl flex-shrink-0">
-                  {item.image || "📦"}
+                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {item.image && item.image.startsWith("http") ? (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-contain p-1" />
+                  ) : (
+                    <span className="text-4xl">{item.image || "📦"}</span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-orange-500 font-semibold uppercase tracking-wider">{item.category}</p>
