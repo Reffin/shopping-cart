@@ -96,6 +96,31 @@ export async function getAllOrders(token) {
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }
+// ── Reviews ──────────────────────────────────────────────────
+export async function getReviews(productId) {
+  const res = await fetch(`${BASE_URL}/reviews/${productId}`);
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}
+
+export async function createReview(productId, data, token) {
+  const res = await fetch(`${BASE_URL}/reviews/${productId}`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}
+
+export async function deleteReview(id, token) {
+  const res = await fetch(`${BASE_URL}/reviews/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}
 
 export async function updateOrderStatus(id, status, token) {
   const res = await fetch(`${BASE_URL}/orders/${id}/status`, {
