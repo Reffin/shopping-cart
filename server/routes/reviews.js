@@ -32,11 +32,11 @@ router.post("/:productId", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Rating and comment are required" });
     }
 
-    // Check if user has purchased this product
+    // Check if user has purchased this product (any status except cancelled)
     const hasPurchased = await Order.findOne({
       user: req.user.id,
       "items.product": req.params.productId,
-      status: { $in: ["delivered", "shipped", "processing"] },
+      status: { $nin: ["cancelled"] },
     });
 
     if (!hasPurchased) {
