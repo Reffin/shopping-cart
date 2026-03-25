@@ -1,6 +1,5 @@
 const router = require("express").Router();
 const Review = require("../models/Review");
-const Order = require("../models/Order");
 const { verifyToken } = require("../middleware/auth");
 
 // ── GET /api/reviews/:productId ───────────────────────────────
@@ -11,7 +10,6 @@ router.get("/:productId", async (req, res) => {
       .populate("user", "name")
       .sort({ createdAt: -1 });
 
-    // Calculate average rating
     const avgRating = reviews.length > 0
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
       : 0;
@@ -23,7 +21,7 @@ router.get("/:productId", async (req, res) => {
 });
 
 // ── POST /api/reviews/:productId ──────────────────────────────
-// Protected - add a review (must have purchased the product)
+// Protected - any logged in user can review
 router.post("/:productId", verifyToken, async (req, res) => {
   try {
     const { rating, comment } = req.body;
@@ -32,18 +30,6 @@ router.post("/:productId", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Rating and comment are required" });
     }
 
-    // Check if user has purchased this product (any status except cancelled)
-    const hasPurchased = await Order.findOne({
-      user: req.user.id,
-      "items.product": req.params.productId,
-      status: { $nin: ["cancelled"] },
-    });
-
-    if (!hasPurchased) {
-      return res.status(403).json({ error: "You can only review products you have purchased" });
-    }
-
-    // Create review
     const review = await Review.create({
       product: req.params.productId,
       user: req.user.id,
