@@ -102,8 +102,12 @@ export default function Orders({ onNavigate }) {
                   <div className="space-y-3 mb-5">
                     {order.items.map((item, i) => (
                       <div key={i} className="flex gap-3 items-center">
-                        <div className="bg-orange-50 w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-                          {item.image || "📦"}
+                        <div className="bg-orange-50 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {item.image && item.image.startsWith("http") ? (
+                            <img src={item.image} alt={item.name} className="w-full h-full object-contain p-1" />
+                          ) : (
+                            <span className="text-2xl">{item.image || "📦"}</span>
+                          )}
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-semibold text-gray-800">{item.name}</p>
