@@ -32,11 +32,11 @@ router.post("/:productId", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Rating and comment are required" });
     }
 
-    // Check if user has purchased this product
+    // Check if user has purchased and received this product
     const productObjectId = new mongoose.Types.ObjectId(req.params.productId);
     const hasPurchased = await Order.findOne({
       user: req.user.id,
-      status: { $nin: ["cancelled"] },
+      status: "delivered",
       items: {
         $elemMatch: {
           product: productObjectId
@@ -45,7 +45,7 @@ router.post("/:productId", verifyToken, async (req, res) => {
     });
 
     if (!hasPurchased) {
-      return res.status(403).json({ error: "You can only review products you have purchased" });
+      return res.status(403).json({ error: "You can only review products you have received (delivered orders)" });
     }
 
     const review = await Review.create({
