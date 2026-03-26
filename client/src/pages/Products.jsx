@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { getProducts, getReviews } from "../api";
+import { getProducts, getReviews, addToWishlist, removeFromWishlist, getWishlist } from "../api";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { formatPrice } from "../api";
 import Reviews from "../components/Reviews";
 
@@ -15,14 +16,15 @@ export default function Products() {
   const [added, setAdded] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productRatings, setProductRatings] = useState({});
+  const [wishlist, setWishlist] = useState([]);
   const { addToCart } = useCart();
+  const { token, isLoggedIn } = useAuth();
 
   useEffect(() => {
     setLoading(true);
     getProducts({ category, search, sort })
       .then(async (data) => {
         setProducts(data);
-        // Fetch ratings for all products
         const ratings = {};
         await Promise.all(data.map(async (p) => {
           try {
@@ -36,10 +38,33 @@ export default function Products() {
       .finally(() => setLoading(false));
   }, [category, search, sort]);
 
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    getWishlist(token)
+      .then(data => setWishlist(data.map(p => p._id)))
+      .catch(console.error);
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart(product);
     setAdded(product._id);
     setTimeout(() => setAdded(null), 1000);
+  };
+
+  const handleWishlist = async (e, productId) => {
+    e.stopPropagation();
+    if (!isLoggedIn) return;
+    try {
+      if (wishlist.includes(productId)) {
+        await removeFromWishlist(productId, token);
+        setWishlist(prev => prev.filter(id => id !== productId));
+      } else {
+        await addToWishlist(productId, token);
+        setWishlist(prev => [...prev, productId]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -120,11 +145,20 @@ export default function Products() {
                   onClick={() => setSelectedProduct(product)}
                 >
                   {/* Image */}
-                  <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-44 flex items-center justify-center overflow-hidden rounded-t-2xl">
+                  <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-44 flex items-center justify-center overflow-hidden rounded-t-2xl relative">
                     {product.image && product.image.startsWith("http") ? (
                       <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform" />
                     ) : (
                       <span className="text-6xl group-hover:scale-110 transition-transform">{product.image || "📦"}</span>
+                    )}
+                    {/* Wishlist button */}
+                    {isLoggedIn && (
+                      <button
+                        onClick={(e) => handleWishlist(e, product._id)}
+                        className="absolute top-2 right-2 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:scale-110 transition-all"
+                      >
+                        <span className={wishlist.includes(product._id) ? "text-red-500" : "text-gray-300"}>❤️</span>
+                      </button>
                     )}
                   </div>
 
@@ -183,7 +217,17 @@ export default function Products() {
               {/* Close Button */}
               <div className="flex justify-between items-start mb-4">
                 <p className="text-xs text-orange-500 font-semibold uppercase tracking-wider">{selectedProduct.category}</p>
-                <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+                <div className="flex items-center gap-2">
+                  {isLoggedIn && (
+                    <button
+                      onClick={(e) => handleWishlist(e, selectedProduct._id)}
+                      className="text-2xl hover:scale-110 transition-all"
+                    >
+                      <span className={wishlist.includes(selectedProduct._id) ? "text-red-500" : "text-gray-300"}>❤️</span>
+                    </button>
+                  )}
+                  <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+                </div>
               </div>
 
               {/* Product Image */}

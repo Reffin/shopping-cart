@@ -3,6 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+
 require("dotenv").config();
 
 const app = express();
@@ -41,6 +42,7 @@ app.use("/api/products", require("./routes/products"));
 app.use("/api/orders",   require("./routes/orders"));
 app.use("/api/payments", require("./routes/payments"));
 app.use("/api/reviews",  require("./routes/reviews"));
+app.use("/api/wishlist", require("./routes/wishlist"));
 
 // ── Health check ─────────────────────────────────────────────
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));

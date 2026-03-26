@@ -39,10 +39,21 @@ export default function Navbar({ onNavigate, currentPage }) {
               ⚙️ Admin
             </button>
           )}
+          {isLoggedIn && (
+            <button onClick={() => onNavigate("wishlist")} className={`text-sm font-medium transition-colors ${currentPage === "wishlist" ? "text-orange-500" : "text-gray-600 hover:text-orange-500"}`}>
+               Wishlist
+            </button>
+          )}
         </div>
 
         {/* Right Side */}
         <div className="flex items-center gap-3">
+          {/* Wishlist Button */}
+          {isLoggedIn && (
+          <button onClick={() => onNavigate("wishlist")} className="relative p-2 text-gray-600 hover:text-orange-500 transition-colors">
+          <span className="text-xl">🔖</span>
+          </button>
+            )}
           {/* Cart Button */}
           <button onClick={() => onNavigate("cart")} className="relative p-2 text-gray-600 hover:text-orange-500 transition-colors">
             <span className="text-xl">🛒</span>

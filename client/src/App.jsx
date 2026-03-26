@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 
 // Pages
+import Wishlist from "./pages/Wishlist";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
@@ -22,6 +23,7 @@ export default function App() {
     // Protect checkout and orders
     if (p === "checkout" && !isLoggedIn) return setPage("login");
     if (p === "orders" && !isLoggedIn) return setPage("login");
+    if (p === "wishlist" && !isLoggedIn) return setPage("login");
     if (p === "admin" && !isAdmin) return setPage("home");
     setPage(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -37,7 +39,9 @@ export default function App() {
       case "register": return <Register onNavigate={navigate} />;
       case "orders":   return <Orders onNavigate={navigate} />;
       case "admin":    return <Admin onNavigate={navigate} />;
+      case "wishlist":  return <Wishlist onNavigate={navigate} />;
       default:         return <Home onNavigate={navigate} />;
+
     }
   };
 

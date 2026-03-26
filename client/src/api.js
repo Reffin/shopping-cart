@@ -131,3 +131,30 @@ export async function updateOrderStatus(id, status, token) {
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }
+
+// ── Wishlist ─────────────────────────────────────────────────
+export async function getWishlist(token) {
+  const res = await fetch(`${BASE_URL}/wishlist`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}
+
+export async function addToWishlist(productId, token) {
+  const res = await fetch(`${BASE_URL}/wishlist/${productId}`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}
+
+export async function removeFromWishlist(productId, token) {
+  const res = await fetch(`${BASE_URL}/wishlist/${productId}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}
