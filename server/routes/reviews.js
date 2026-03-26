@@ -1,5 +1,7 @@
 const router = require("express").Router();
 const Review = require("../models/Review");
+const Order = require("../models/Order");
+const mongoose = require("mongoose");
 const { verifyToken } = require("../middleware/auth");
 
 // ── GET /api/reviews/:productId ───────────────────────────────
@@ -21,13 +23,29 @@ router.get("/:productId", async (req, res) => {
 });
 
 // ── POST /api/reviews/:productId ──────────────────────────────
-// Protected - any logged in user can review
+// Protected - must have purchased the product
 router.post("/:productId", verifyToken, async (req, res) => {
   try {
     const { rating, comment } = req.body;
 
     if (!rating || !comment) {
       return res.status(400).json({ error: "Rating and comment are required" });
+    }
+
+    // Check if user has purchased this product
+    const productObjectId = new mongoose.Types.ObjectId(req.params.productId);
+    const hasPurchased = await Order.findOne({
+      user: req.user.id,
+      status: { $nin: ["cancelled"] },
+      items: {
+        $elemMatch: {
+          product: productObjectId
+        }
+      }
+    });
+
+    if (!hasPurchased) {
+      return res.status(403).json({ error: "You can only review products you have purchased" });
     }
 
     const review = await Review.create({
