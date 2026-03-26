@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { getWishlist, removeFromWishlist } from "../api";
+import { getWishlist } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 import { formatPrice } from "../api";
 
 export default function Wishlist({ onNavigate }) {
   const { token, isLoggedIn } = useAuth();
   const { addToCart } = useCart();
+  const { removeItem } = useWishlist();
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(null);
@@ -20,12 +22,8 @@ export default function Wishlist({ onNavigate }) {
   }, []);
 
   const handleRemove = async (productId) => {
-    try {
-      await removeFromWishlist(productId, token);
-      setWishlist(prev => prev.filter(p => p._id !== productId));
-    } catch (err) {
-      alert(err.message);
-    }
+    await removeItem(productId);
+    setWishlist(prev => prev.filter(p => p._id !== productId));
   };
 
   const handleAddToCart = (product) => {
@@ -82,14 +80,12 @@ export default function Wishlist({ onNavigate }) {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {wishlist.map(product => (
             <div key={product._id} className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all overflow-hidden group">
-              {/* Image */}
               <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-44 flex items-center justify-center overflow-hidden rounded-t-2xl relative">
                 {product.image && product.image.startsWith("http") ? (
                   <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2" />
                 ) : (
                   <span className="text-6xl">{product.image || "📦"}</span>
                 )}
-                {/* Remove button */}
                 <button
                   onClick={() => handleRemove(product._id)}
                   className="absolute top-2 right-2 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-red-50 transition-colors text-red-400 hover:text-red-600"
@@ -98,7 +94,6 @@ export default function Wishlist({ onNavigate }) {
                 </button>
               </div>
 
-              {/* Info */}
               <div className="p-4">
                 <p className="text-xs text-orange-500 font-semibold uppercase tracking-wider mb-1">{product.category}</p>
                 <h3 className="font-bold text-gray-800 mb-1 truncate">{product.name}</h3>

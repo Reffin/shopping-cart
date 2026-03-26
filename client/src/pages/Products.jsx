@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { getProducts, getReviews, addToWishlist, removeFromWishlist, getWishlist } from "../api";
+import { getProducts, getReviews } from "../api";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useWishlist } from "../context/WishlistContext";
 import { formatPrice } from "../api";
 import Reviews from "../components/Reviews";
 
@@ -16,9 +17,9 @@ export default function Products() {
   const [added, setAdded] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productRatings, setProductRatings] = useState({});
-  const [wishlist, setWishlist] = useState([]);
   const { addToCart } = useCart();
-  const { token, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth();
+  const { addItem, removeItem, isInWishlist } = useWishlist();
 
   useEffect(() => {
     setLoading(true);
@@ -38,13 +39,6 @@ export default function Products() {
       .finally(() => setLoading(false));
   }, [category, search, sort]);
 
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    getWishlist(token)
-      .then(data => setWishlist(data.map(p => p._id)))
-      .catch(console.error);
-  }, []);
-
   const handleAddToCart = (product) => {
     addToCart(product);
     setAdded(product._id);
@@ -54,16 +48,10 @@ export default function Products() {
   const handleWishlist = async (e, productId) => {
     e.stopPropagation();
     if (!isLoggedIn) return;
-    try {
-      if (wishlist.includes(productId)) {
-        await removeFromWishlist(productId, token);
-        setWishlist(prev => prev.filter(id => id !== productId));
-      } else {
-        await addToWishlist(productId, token);
-        setWishlist(prev => [...prev, productId]);
-      }
-    } catch (err) {
-      console.error(err);
+    if (isInWishlist(productId)) {
+      await removeItem(productId);
+    } else {
+      await addItem(productId);
     }
   };
 
@@ -157,7 +145,7 @@ export default function Products() {
                         onClick={(e) => handleWishlist(e, product._id)}
                         className="absolute top-2 right-2 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:scale-110 transition-all"
                       >
-                        <span className={wishlist.includes(product._id) ? "text-red-500" : "text-gray-300"}>❤️</span>
+                        <span className={isInWishlist(product._id) ? "text-red-500" : "text-gray-300"}>❤️</span>
                       </button>
                     )}
                   </div>
@@ -214,7 +202,6 @@ export default function Products() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedProduct(null)}>
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="p-6">
-              {/* Close Button */}
               <div className="flex justify-between items-start mb-4">
                 <p className="text-xs text-orange-500 font-semibold uppercase tracking-wider">{selectedProduct.category}</p>
                 <div className="flex items-center gap-2">
@@ -223,14 +210,13 @@ export default function Products() {
                       onClick={(e) => handleWishlist(e, selectedProduct._id)}
                       className="text-2xl hover:scale-110 transition-all"
                     >
-                      <span className={wishlist.includes(selectedProduct._id) ? "text-red-500" : "text-gray-300"}>❤️</span>
+                      <span className={isInWishlist(selectedProduct._id) ? "text-red-500" : "text-gray-300"}>❤️</span>
                     </button>
                   )}
                   <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
                 </div>
               </div>
 
-              {/* Product Image */}
               <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-64 flex items-center justify-center rounded-xl mb-4 overflow-hidden">
                 {selectedProduct.image && selectedProduct.image.startsWith("http") ? (
                   <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-contain p-4" />
@@ -239,11 +225,9 @@ export default function Products() {
                 )}
               </div>
 
-              {/* Product Info */}
               <h2 className="text-2xl font-extrabold text-gray-800 mb-2">{selectedProduct.name}</h2>
               <p className="text-gray-500 text-sm mb-4">{selectedProduct.description}</p>
 
-              {/* Rating Summary */}
               {productRatings[selectedProduct._id]?.total > 0 && (
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-yellow-400 text-lg">★</span>
@@ -277,7 +261,6 @@ export default function Products() {
                 {selectedProduct.stock === 0 ? "Out of Stock" : added === selectedProduct._id ? "✓ Added to Cart!" : "+ Add to Cart"}
               </button>
 
-              {/* Reviews */}
               <Reviews productId={selectedProduct._id} />
             </div>
           </div>
