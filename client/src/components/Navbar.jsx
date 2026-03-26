@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useWishlist } from "../context/WishlistContext";
 
 export default function Navbar({ onNavigate, currentPage }) {
   const { cartCount } = useCart();
   const { user, logout, isLoggedIn, isAdmin } = useAuth();
+  const { wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -15,7 +17,7 @@ export default function Navbar({ onNavigate, currentPage }) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        
+
         {/* Logo */}
         <button onClick={() => onNavigate("home")} className="text-2xl font-bold text-orange-500 tracking-tight">
           🛍️ ShopZone
@@ -34,26 +36,33 @@ export default function Navbar({ onNavigate, currentPage }) {
               My Orders
             </button>
           )}
+          {isLoggedIn && (
+            <button onClick={() => onNavigate("wishlist")} className={`text-sm font-medium transition-colors ${currentPage === "wishlist" ? "text-orange-500" : "text-gray-600 hover:text-orange-500"}`}>
+              Wishlist
+            </button>
+          )}
           {isAdmin && (
             <button onClick={() => onNavigate("admin")} className={`text-sm font-medium transition-colors ${currentPage === "admin" ? "text-orange-500" : "text-gray-600 hover:text-orange-500"}`}>
               ⚙️ Admin
-            </button>
-          )}
-          {isLoggedIn && (
-            <button onClick={() => onNavigate("wishlist")} className={`text-sm font-medium transition-colors ${currentPage === "wishlist" ? "text-orange-500" : "text-gray-600 hover:text-orange-500"}`}>
-               Wishlist
             </button>
           )}
         </div>
 
         {/* Right Side */}
         <div className="flex items-center gap-3">
+
           {/* Wishlist Button */}
           {isLoggedIn && (
-          <button onClick={() => onNavigate("wishlist")} className="relative p-2 text-gray-600 hover:text-orange-500 transition-colors">
-          <span className="text-xl">🔖</span>
-          </button>
-            )}
+            <button onClick={() => onNavigate("wishlist")} className="relative p-2 text-gray-600 hover:text-orange-500 transition-colors">
+              <span className="text-xl">🔖</span>
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Cart Button */}
           <button onClick={() => onNavigate("cart")} className="relative p-2 text-gray-600 hover:text-orange-500 transition-colors">
             <span className="text-xl">🛒</span>
@@ -96,6 +105,11 @@ export default function Navbar({ onNavigate, currentPage }) {
           <button onClick={() => { onNavigate("home"); setMenuOpen(false); }} className="text-sm text-gray-600 text-left py-1">Home</button>
           <button onClick={() => { onNavigate("products"); setMenuOpen(false); }} className="text-sm text-gray-600 text-left py-1">Products</button>
           {isLoggedIn && <button onClick={() => { onNavigate("orders"); setMenuOpen(false); }} className="text-sm text-gray-600 text-left py-1">My Orders</button>}
+          {isLoggedIn && (
+            <button onClick={() => { onNavigate("wishlist"); setMenuOpen(false); }} className="text-sm text-gray-600 text-left py-1">
+              Wishlist {wishlistCount > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 ml-1">{wishlistCount}</span>}
+            </button>
+          )}
           {isAdmin && <button onClick={() => { onNavigate("admin"); setMenuOpen(false); }} className="text-sm text-gray-600 text-left py-1">⚙️ Admin</button>}
           {isLoggedIn ? (
             <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-sm text-red-500 text-left py-1">Logout</button>
