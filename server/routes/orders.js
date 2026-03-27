@@ -72,6 +72,8 @@ router.post("/", verifyToken, async (req, res) => {
 
     // Get user email
     const userData = await User.findById(req.user.id).select("email");
+    console.log("User email:", userData?.email);
+    console.log("BREVO_API_KEY exists:", !!process.env.BREVO_API_KEY);
 
     // Send order confirmation email
     try {
