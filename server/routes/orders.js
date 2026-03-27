@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const User = require("../models/User");
 const { verifyToken, isAdmin } = require("../middleware/auth");
 
 // ── Send email via Brevo API ──────────────────────────────────
@@ -69,6 +70,9 @@ router.post("/", verifyToken, async (req, res) => {
       address,
     });
 
+    // Get user email
+    const userData = await User.findById(req.user.id).select("email");
+
     // Send order confirmation email
     try {
       const itemsHtml = orderItems.map(item => `
@@ -80,7 +84,7 @@ router.post("/", verifyToken, async (req, res) => {
       `).join("");
 
       await sendEmail(
-        req.user.email || address.fullName,
+        userData.email,
         `🛍️ Order Confirmed! #${order._id.slice(-8).toUpperCase()}`,
         `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
