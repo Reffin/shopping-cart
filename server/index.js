@@ -46,6 +46,29 @@ app.use("/api/wishlist", require("./routes/wishlist"));
 
 // ── Health check ─────────────────────────────────────────────
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+// Temporary test route
+app.get("/api/test-email", async (req, res) => {
+  try {
+    console.log("BREVO KEY:", process.env.BREVO_API_KEY ? "EXISTS" : "MISSING");
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        sender: { name: "ShopZone", email: "ryancarbonel1984@gmail.com" },
+        to: [{ email: "ryancarbonel1984@gmail.com" }],
+        subject: "Railway Test Email",
+        htmlContent: "<h1>Railway email test!</h1>",
+      }),
+    });
+    const data = await response.json();
+    res.json({ status: response.status, data });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+});
 
 // ── 404 handler ──────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
