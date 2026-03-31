@@ -30,6 +30,8 @@ async function sendEmail(to, subject, html) {
 // Protected - place a new order
 router.post("/", verifyToken, async (req, res) => {
   try {
+    console.log("=== NEW ORDER REQUEST ===");
+    console.log("BREVO KEY:", process.env.BREVO_API_KEY ? "EXISTS" : "MISSING");
     const { items, address } = req.body;
 
     if (!items || items.length === 0)
@@ -187,7 +189,3 @@ router.patch("/:id/status", verifyToken, isAdmin, async (req, res) => {
     res.json(order);
   } catch (err) {
     res.status(500).json({ error: err.message });
-  }
-});
-
-module.exports = router;
