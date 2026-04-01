@@ -46,15 +46,14 @@ app.use("/api/wishlist", require("./routes/wishlist"));
 
 // ── Health check ─────────────────────────────────────────────
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
-// Temporary test route
-app.get("/api/test-email", async (req, res) => {
+app.post("/api/test-email", async (req, res) => {
+  const BREVO_KEY = "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";
   try {
-    console.log("BREVO KEY:", process.env.BREVO_API_KEY ? "EXISTS" : "MISSING");
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "api-key": process.env.BREVO_API_KEY,
+        "api-key": BREVO_KEY,
       },
       body: JSON.stringify({
         sender: { name: "ShopZone", email: "ryancarbonel1984@gmail.com" },
