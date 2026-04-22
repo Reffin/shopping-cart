@@ -4,22 +4,18 @@ const { verifyToken, isAdmin } = require("../middleware/auth");
 const { upload, uploadToCloudinary } = require("../middleware/upload");
 
 // ── GET /api/products ─────────────────────────────────────────
-// Public - get all products with search & filter
 router.get("/", async (req, res) => {
   try {
     const { category, search, sort } = req.query;
     let query = {};
 
-    // Filter by category
     if (category && category !== "All")
       query.category = category;
 
-    // Search by name
     if (search)
       query.name = { $regex: search, $options: "i" };
 
-    // Sort options
-    let sortOption = { createdAt: -1 }; // newest first by default
+    let sortOption = { createdAt: -1 };
     if (sort === "price-asc")  sortOption = { price: 1 };
     if (sort === "price-desc") sortOption = { price: -1 };
     if (sort === "name")       sortOption = { name: 1 };
@@ -32,7 +28,6 @@ router.get("/", async (req, res) => {
 });
 
 // ── GET /api/products/featured ────────────────────────────────
-// Public - get featured products for homepage
 router.get("/featured", async (req, res) => {
   try {
     const products = await Product.find({ featured: true }).limit(6);
@@ -42,7 +37,23 @@ router.get("/featured", async (req, res) => {
   }
 });
 
+// ── GET /api/products/suggestions ────────────────────────────
+router.get("/suggestions", async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) return res.json([]);
 
+    const suggestions = await Product.find({
+      name: { $regex: q, $options: "i" },
+    })
+      .select("name category image")
+      .limit(5);
+
+    res.json(suggestions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ── POST /api/products/upload ─────────────────────────────────
 router.post("/upload", verifyToken, isAdmin, upload.single("image"), async (req, res) => {
@@ -58,7 +69,6 @@ router.post("/upload", verifyToken, isAdmin, upload.single("image"), async (req,
 });
 
 // ── GET /api/products/:id ─────────────────────────────────────
-// Public - get single product
 router.get("/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -71,7 +81,6 @@ router.get("/:id", async (req, res) => {
 });
 
 // ── POST /api/products ────────────────────────────────────────
-// Admin only - create product
 router.post("/", verifyToken, isAdmin, async (req, res) => {
   try {
     const { name, description, price, image, category, stock, featured } = req.body;
@@ -86,7 +95,6 @@ router.post("/", verifyToken, isAdmin, async (req, res) => {
 });
 
 // ── PUT /api/products/:id ─────────────────────────────────────
-// Admin only - update product
 router.put("/:id", verifyToken, isAdmin, async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(
@@ -103,31 +111,12 @@ router.put("/:id", verifyToken, isAdmin, async (req, res) => {
 });
 
 // ── DELETE /api/products/:id ──────────────────────────────────
-// Admin only - delete product
 router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product)
       return res.status(404).json({ error: "Product not found" });
     res.json({ message: "Product deleted" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/products/suggestions?q=query
-router.get("/suggestions", async (req, res) => {
-  try {
-    const { q } = req.query;
-    if (!q || q.trim().length < 1) return res.json([]);
-
-    const suggestions = await Product.find({
-      name: { $regex: q, $options: "i" },
-    })
-      .select("name category image")
-      .limit(5);
-
-    res.json(suggestions);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
