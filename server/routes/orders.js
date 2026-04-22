@@ -94,7 +94,7 @@ router.post("/", verifyToken, async (req, res) => {
           <p style="color: #374151; font-size: 16px;">Hi <strong>${address.fullName}</strong>,</p>
           <p style="color: #6b7280;">Thank you for your order! We have received it and will process it shortly.</p>
           <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0;">
-            <p style="margin: 0; color: #374151;"><strong>Order ID:</strong> #${order._id.slice(-8).toUpperCase()}</p>
+            <p style="margin: 0; color: #374151;"><strong>Order ID:</strong> #${order._id.toString().slice(-8).toUpperCase()}</p>
             <p style="margin: 8px 0 0; color: #374151;"><strong>Status:</strong> <span style="color: #f97316;">Pending</span></p>
           </div>
           <h3 style="color: #374151; border-bottom: 2px solid #f97316; padding-bottom: 8px;">Items Ordered</h3>
