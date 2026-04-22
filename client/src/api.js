@@ -158,3 +158,10 @@ export async function removeFromWishlist(productId, token) {
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }
+
+// ── Search Suggestions ────────────────────────────────────────
+export async function getSearchSuggestions(query) {
+  const res = await fetch(`${BASE_URL}/products/suggestions?q=${encodeURIComponent(query)}`);
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}

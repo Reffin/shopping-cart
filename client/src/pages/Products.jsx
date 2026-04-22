@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { getProducts, getReviews } from "../api";
+import { useState, useEffect, useRef } from "react";
+import { getProducts, getReviews, getSearchSuggestions } from "../api";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -17,6 +17,10 @@ export default function Products() {
   const [added, setAdded] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productRatings, setProductRatings] = useState({});
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const searchRef = useRef(null);
   const { addToCart } = useCart();
   const { isLoggedIn } = useAuth();
   const { addItem, removeItem, isInWishlist } = useWishlist();
@@ -38,6 +42,50 @@ export default function Products() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [category, search, sort]);
+
+  // Search suggestions
+  useEffect(() => {
+    if (searchInput.trim().length < 1) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      try {
+        const results = await getSearchSuggestions(searchInput);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch {}
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const handleSearchInput = (e) => {
+    setSearchInput(e.target.value);
+  };
+
+  const handleSuggestionClick = (name) => {
+    setSearchInput(name);
+    setSearch(name);
+    setShowSuggestions(false);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearch(searchInput);
+    setShowSuggestions(false);
+  };
 
   const handleAddToCart = (product) => {
     addToCart(product);
@@ -70,13 +118,46 @@ export default function Products() {
 
         {/* Search & Sort */}
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-col md:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="🔍 Search products..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
-          />
+          {/* Search with suggestions */}
+          <div className="flex-1 relative" ref={searchRef}>
+            <form onSubmit={handleSearchSubmit}>
+              <input
+                type="text"
+                placeholder="🔍 Search products..."
+                value={searchInput}
+                onChange={handleSearchInput}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
+              />
+            </form>
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 z-50 overflow-hidden">
+                {suggestions.map(s => (
+                  <div
+                    key={s._id}
+                    onClick={() => handleSuggestionClick(s.name)}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 cursor-pointer transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {s.image && s.image.startsWith("http") ? (
+                        <img src={s.image} alt={s.name} className="w-full h-full object-contain p-1" />
+                      ) : (
+                        <span className="text-sm">{s.image || "📦"}</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{s.name}</p>
+                      <p className="text-xs text-orange-500">{s.category}</p>
+                    </div>
+                    <span className="ml-auto text-gray-300 text-xs">→</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
@@ -132,14 +213,12 @@ export default function Products() {
                 <div key={product._id} className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 overflow-hidden group cursor-pointer"
                   onClick={() => setSelectedProduct(product)}
                 >
-                  {/* Image */}
                   <div className="bg-gradient-to-br from-orange-50 to-yellow-50 h-44 flex items-center justify-center overflow-hidden rounded-t-2xl relative">
                     {product.image && product.image.startsWith("http") ? (
                       <img src={product.image} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform" />
                     ) : (
                       <span className="text-6xl group-hover:scale-110 transition-transform">{product.image || "📦"}</span>
                     )}
-                    {/* Wishlist button */}
                     {isLoggedIn && (
                       <button
                         onClick={(e) => handleWishlist(e, product._id)}
@@ -150,7 +229,6 @@ export default function Products() {
                     )}
                   </div>
 
-                  {/* Info */}
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-1">
                       <p className="text-xs text-orange-500 font-semibold uppercase tracking-wider">{product.category}</p>
@@ -164,7 +242,6 @@ export default function Products() {
                     <h3 className="font-bold text-gray-800 mb-1 truncate">{product.name}</h3>
                     <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
 
-                    {/* Rating */}
                     {productRatings[product._id]?.total > 0 && (
                       <div className="flex items-center gap-1 mb-2">
                         <span className="text-yellow-400 text-sm">★</span>

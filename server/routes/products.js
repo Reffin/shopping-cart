@@ -115,4 +115,22 @@ router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+// GET /api/products/suggestions?q=query
+router.get("/suggestions", async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) return res.json([]);
+
+    const suggestions = await Product.find({
+      name: { $regex: q, $options: "i" },
+    })
+      .select("name category image")
+      .limit(5);
+
+    res.json(suggestions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
