@@ -1,4 +1,4 @@
-const BASE_URL = "https://shopping-cart-production-76db.up.railway.app/api";
+const BASE_URL = "https://shopzone-server-hisq.onrender.com/api";
 export const formatPrice = (price) => `₱${price.toFixed(2)}`;
 
 const authHeaders = (token) => ({
