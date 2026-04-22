@@ -84,7 +84,7 @@ router.post("/", verifyToken, async (req, res) => {
 
       await sendEmail(
         userData.email,
-        `ShopZone Order Confirmed! #${order._id.slice(-8).toUpperCase()}`,
+        `ShopZone Order Confirmed! #${order._id.toString().slice(-8).toUpperCase()}`,
         `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(to right, #f97316, #facc15); padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
