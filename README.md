@@ -10,7 +10,8 @@ A modern, full-featured e-commerce web application built with React, Node.js, Mo
 
 ### 🛒 Shopping
 - Browse products by category (Electronics, Clothing, Shoes, Bags, etc.)
-- Search and filter products
+- **Search suggestions** — live dropdown as you type
+- Filter by category
 - Sort by price or name
 - Product detail modal with images and descriptions
 - Add to cart with quantity management
@@ -33,7 +34,7 @@ A modern, full-featured e-commerce web application built with React, Node.js, Mo
 
 ### 🔖 Wishlist
 - Save products for later
-- Wishlist badge counter in navbar
+- **Red badge counter** in navbar
 - Move items from wishlist to cart
 - Add to cart while keeping in wishlist
 
@@ -146,14 +147,14 @@ shopping-cart/
 │   ├── src/
 │   │   ├── api.js          # API functions
 │   │   ├── context/        # Auth, Cart, Wishlist context
-│   │   ├── pages/          # Home, Products, Cart, Orders, etc.
+│   │   ├── pages/          # Home, Products, Cart, Orders, Wishlist
 │   │   └── components/     # Navbar, Reviews
 │   └── package.json
 │
 └── server/                 # Node.js backend
-    ├── models/             # MongoDB models
-    ├── routes/             # API routes
-    ├── middleware/         # Auth middleware
+    ├── models/             # User, Product, Order, Review, Wishlist
+    ├── routes/             # auth, products, orders, payments, reviews, wishlist
+    ├── middleware/         # Auth, Cloudinary upload
     └── index.js            # Entry point
 ```
 
@@ -166,13 +167,16 @@ shopping-cart/
 | POST | `/api/auth/register` | Register user |
 | POST | `/api/auth/login` | Login user |
 | GET | `/api/products` | Get all products |
+| GET | `/api/products/suggestions` | Search suggestions |
+| GET | `/api/products/featured` | Get featured products |
 | POST | `/api/products` | Add product (Admin) |
-| POST | `/api/orders` | Place order |
+| POST | `/api/orders` | Place order + send email |
 | GET | `/api/orders/my` | Get user orders |
 | GET | `/api/reviews/:id` | Get product reviews |
-| POST | `/api/reviews/:id` | Add review |
+| POST | `/api/reviews/:id` | Add review (delivered orders only) |
 | GET | `/api/wishlist` | Get wishlist |
 | POST | `/api/wishlist/:id` | Add to wishlist |
+| DELETE | `/api/wishlist/:id` | Remove from wishlist |
 | POST | `/api/payments/create-link` | Create PayMongo payment |
 
 ---
