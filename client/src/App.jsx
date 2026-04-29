@@ -1,54 +1,62 @@
-import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-
-// Pages
-import Wishlist from "./pages/Wishlist";
+import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import Orders from "./pages/Orders";
+import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Orders from "./pages/Orders";
 import Admin from "./pages/Admin";
 
-// Components
-import Navbar from "./components/Navbar";
+// Protected route wrapper
+function ProtectedRoute({ children }) {
+  const { isLoggedIn } = useAuth();
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  return children;
+}
+
+// Admin route wrapper
+function AdminRoute({ children }) {
+  const { isAdmin } = useAuth();
+  if (!isAdmin) return <Navigate to="/" replace />;
+  return children;
+}
 
 export default function App() {
-  const [page, setPage] = useState("home");
   const { isLoggedIn, isAdmin } = useAuth();
-
-  const navigate = (p) => {
-    // Protect checkout and orders
-    if (p === "checkout" && !isLoggedIn) return setPage("login");
-    if (p === "orders" && !isLoggedIn) return setPage("login");
-    if (p === "wishlist" && !isLoggedIn) return setPage("login");
-    if (p === "admin" && !isAdmin) return setPage("home");
-    setPage(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const renderPage = () => {
-    switch (page) {
-      case "home":     return <Home onNavigate={navigate} />;
-      case "products": return <Products onNavigate={navigate} />;
-      case "cart":     return <Cart onNavigate={navigate} />;
-      case "checkout": return <Checkout onNavigate={navigate} />;
-      case "login":    return <Login onNavigate={navigate} />;
-      case "register": return <Register onNavigate={navigate} />;
-      case "orders":   return <Orders onNavigate={navigate} />;
-      case "admin":    return <Admin onNavigate={navigate} />;
-      case "wishlist":  return <Wishlist onNavigate={navigate} />;
-      default:         return <Home onNavigate={navigate} />;
-
-    }
-  };
 
   return (
     <div>
-      <Navbar onNavigate={navigate} currentPage={page} />
-      {renderPage()}
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected Routes */}
+        <Route path="/checkout" element={
+          <ProtectedRoute><Checkout /></ProtectedRoute>
+        } />
+        <Route path="/orders" element={
+          <ProtectedRoute><Orders /></ProtectedRoute>
+        } />
+        <Route path="/wishlist" element={
+          <ProtectedRoute><Wishlist /></ProtectedRoute>
+        } />
+
+        {/* Admin Route */}
+        <Route path="/admin" element={
+          <AdminRoute><Admin /></AdminRoute>
+        } />
+
+        {/* Catch all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }

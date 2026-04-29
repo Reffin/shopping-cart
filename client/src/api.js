@@ -165,3 +165,14 @@ export async function getSearchSuggestions(query) {
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }
+
+// ── Payments ─────────────────────────────────────────────────
+export async function createPaymentLink(data, token) {
+  const res = await fetch(`${BASE_URL}/payments/create-link`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}

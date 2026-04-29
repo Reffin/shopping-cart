@@ -6,7 +6,9 @@ import { formatPrice } from "../api";
 const CATEGORIES = ["Electronics", "Clothing", "Shoes", "Bags", "Accessories", "Home", "Sports"];
 const EMPTY_FORM = { name: "", description: "", price: "", image: "", category: "Electronics", stock: "", featured: false };
 
-export default function Admin({ onNavigate }) {
+import { useNavigate } from "react-router-dom";
+export default function Admin() {
+  const navigate = useNavigate();
   const { token } = useAuth();
   const [tab, setTab] = useState("products");
   const [products, setProducts] = useState([]);
@@ -126,7 +128,7 @@ export default function Admin({ onNavigate }) {
             <h1 className="text-3xl font-extrabold text-gray-800">⚙️ Admin Panel</h1>
             <p className="text-gray-500 text-sm mt-1">Manage your store</p>
           </div>
-          <button onClick={() => onNavigate("home")} className="text-sm text-gray-500 hover:text-orange-500 transition-colors">
+          <button onClick={() => onNavigate("/")} className="text-sm text-gray-500 hover:text-orange-500 transition-colors">
             ← Back to Store
           </button>
         </div>

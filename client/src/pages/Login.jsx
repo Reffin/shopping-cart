@@ -1,22 +1,23 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api";
 import { useAuth } from "../context/AuthContext";
 
-export default function Login({ onNavigate }) {
+export default function Login() {
+  const navigate = useNavigate();
   const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const { token, user } = await loginUser(form);
-      login(user, token);
-      onNavigate("home");
+      const data = await loginUser(form);
+      login(data.user, data.token);
+      navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -27,67 +28,47 @@ export default function Login({ onNavigate }) {
   return (
     <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-md">
+        <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Welcome back! 👋</h1>
+        <p className="text-gray-500 text-sm mb-6">Login to your ShopZone account</p>
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-4">👋</div>
-          <h1 className="text-2xl font-extrabold text-gray-800">Welcome Back!</h1>
-          <p className="text-gray-500 text-sm mt-1">Sign in to your ShopZone account</p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-600 mb-4">
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-xl">⚠️ {error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-semibold text-gray-600 mb-1 block">Email</label>
+            <label className="text-sm font-semibold text-gray-700 mb-1 block">Email</label>
             <input
               type="email"
+              placeholder="your@email.com"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
               required
-              placeholder="ryan@email.com"
               className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
             />
           </div>
-
           <div>
-            <label className="text-sm font-semibold text-gray-600 mb-1 block">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                required
-                placeholder="••••••••"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? "🙈" : "👁️"}
-              </button>
-            </div>
+            <label className="text-sm font-semibold text-gray-700 mb-1 block">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={e => setForm({ ...form, password: e.target.value })}
+              required
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-400 transition-colors"
+            />
           </div>
-
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all shadow-lg"
+            className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all"
           >
-            {loading ? "Signing in..." : "Sign In →"}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don't have an account?{" "}
-          <button onClick={() => onNavigate("register")} className="text-orange-500 font-semibold hover:underline">
-            Sign Up Free
+          <button onClick={() => navigate("/register")} className="text-orange-500 font-semibold hover:underline">
+            Sign Up
           </button>
         </p>
       </div>
