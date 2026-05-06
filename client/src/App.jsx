@@ -11,53 +11,29 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Admin from "./pages/Admin";
 
-// Protected route wrapper
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth();
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   return children;
 }
 
-// Admin route wrapper
 function AdminRoute({ children }) {
   const { isAdmin } = useAuth();
   if (!isAdmin) return <Navigate to="/" replace />;
   return children;
 }
 
-// Footer component
-function Footer() {
-  return (
-    <footer className="bg-gray-800 text-white py-6 px-4 mt-auto">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🛍️</span>
-          <span className="font-extrabold text-orange-400 text-lg">ShopZone</span>
-        </div>
-        <p className="text-gray-400 text-sm text-center">
-          © 2026 ShopZone. All rights reserved.
-        </p>
-        <p className="text-gray-400 text-sm">
-          Developed by <span className="text-orange-400 font-semibold">Ryan S. Carbonel</span>
-        </p>
-      </div>
-    </footer>
-  );
-}
-
 export default function App() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Navbar />
-      <main className="flex-1">
+      <div style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
-          {/* Protected Routes */}
           <Route path="/checkout" element={
             <ProtectedRoute><Checkout /></ProtectedRoute>
           } />
@@ -67,17 +43,28 @@ export default function App() {
           <Route path="/wishlist" element={
             <ProtectedRoute><Wishlist /></ProtectedRoute>
           } />
-
-          {/* Admin Route */}
           <Route path="/admin" element={
             <AdminRoute><Admin /></AdminRoute>
           } />
-
-          {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </main>
-      <Footer />
+      </div>
+
+      {/* Footer */}
+      <footer style={{ background: "#1f2937", color: "white", padding: "1.5rem 1rem" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ fontSize: "1.5rem" }}>🛍️</span>
+            <span style={{ fontWeight: 800, color: "#f97316", fontSize: "1.1rem" }}>ShopZone</span>
+          </div>
+          <p style={{ color: "#9ca3af", fontSize: "0.85rem", textAlign: "center" }}>
+            © 2026 ShopZone. All rights reserved.
+          </p>
+          <p style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
+            Developed by <span style={{ color: "#f97316", fontWeight: 600 }}>Ryan S. Carbonel</span>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
