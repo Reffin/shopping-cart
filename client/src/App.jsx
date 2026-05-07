@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
+import ChatBot from "./components/ChatBot";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
@@ -65,6 +66,9 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      {/* AI Chatbot */}
+      <ChatBot />
     </div>
   );
 }
