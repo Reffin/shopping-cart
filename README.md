@@ -1,6 +1,6 @@
 # 🛍️ ShopZone — Full Stack E-Commerce App
 
-A modern, full-featured e-commerce web application built with React, Node.js, MongoDB, and integrated with Philippine payment solutions.
+A modern, full-featured e-commerce web application built with React, Node.js, MongoDB, and integrated with Philippine payment solutions and AI-powered customer support.
 
 🌐 **Live Demo:** [https://shopping-cart-peach-alpha.vercel.app](https://shopping-cart-peach-alpha.vercel.app)
 
@@ -8,11 +8,17 @@ A modern, full-featured e-commerce web application built with React, Node.js, Mo
 
 ## ✨ Features
 
+### 🤖 AI Chatbot (NEW!)
+- Powered by **Groq API + Llama 3.1** — ultra-fast AI responses
+- Knows ShopZone's real products, prices, and payment methods
+- Chat history memory for context-aware conversations
+- Quick suggestion buttons for common questions
+- Available on every page via floating button
+
 ### 🛒 Shopping
 - Browse products by category (Electronics, Clothing, Shoes, Bags, etc.)
-- **Search suggestions** — live dropdown as you type
-- Filter by category
-- Sort by price or name
+- **Live search suggestions** — dropdown as you type
+- Filter by category and sort by price or name
 - Product detail modal with images and descriptions
 - Add to cart with quantity management
 
@@ -40,8 +46,9 @@ A modern, full-featured e-commerce web application built with React, Node.js, Mo
 
 ### 🔐 Authentication
 - Register and login with JWT
-- Protected routes
-- Admin dashboard
+- Stay logged in across browser sessions (localStorage)
+- Protected routes with React Router v6
+- Admin dashboard protected by role-based access
 
 ### ⚙️ Admin Panel
 - Add, edit, delete products with image upload (Cloudinary)
@@ -58,17 +65,20 @@ A modern, full-featured e-commerce web application built with React, Node.js, Mo
 |-----------|---------|
 | React + Vite | UI Framework |
 | Tailwind CSS | Styling |
-| Context API | State Management |
+| React Router v6 | Navigation & routing |
+| Context API | State Management (Auth, Cart, Wishlist) |
 
 ### Backend
 | Technology | Purpose |
 |-----------|---------|
 | Node.js + Express | Server |
 | MongoDB + Mongoose | Database |
-| JWT | Authentication |
+| JWT + Bcrypt | Authentication & Security |
+| Helmet + CORS | Security Middleware |
 | Cloudinary | Image Storage |
 | PayMongo | Payment Processing |
 | Brevo | Email Service |
+| Groq API + Llama 3.1 | AI Chatbot |
 
 ### Deployment
 | Service | Purpose |
@@ -87,6 +97,7 @@ A modern, full-featured e-commerce web application built with React, Node.js, Mo
 - Cloudinary account
 - PayMongo account
 - Brevo account
+- Groq API account (free)
 
 ### Installation
 
@@ -121,6 +132,7 @@ CLOUDINARY_API_KEY=your_cloudinary_key
 CLOUDINARY_API_SECRET=your_cloudinary_secret
 PAYMONGO_SECRET_KEY=your_paymongo_key
 BREVO_API_KEY=your_brevo_key
+GROQ_API_KEY=your_groq_key
 ```
 
 5. **Run the development servers**
@@ -147,13 +159,13 @@ shopping-cart/
 │   ├── src/
 │   │   ├── api.js          # API functions
 │   │   ├── context/        # Auth, Cart, Wishlist context
-│   │   ├── pages/          # Home, Products, Cart, Orders, Wishlist
-│   │   └── components/     # Navbar, Reviews
-│   └── package.json
+│   │   ├── pages/          # Home, Products, Cart, Orders, etc.
+│   │   └── components/     # Navbar, Reviews, ChatBot
+│   └── vercel.json         # Vercel SPA routing config
 │
 └── server/                 # Node.js backend
     ├── models/             # User, Product, Order, Review, Wishlist
-    ├── routes/             # auth, products, orders, payments, reviews, wishlist
+    ├── routes/             # auth, products, orders, payments, reviews, wishlist, chat
     ├── middleware/         # Auth, Cloudinary upload
     └── index.js            # Entry point
 ```
@@ -167,7 +179,7 @@ shopping-cart/
 | POST | `/api/auth/register` | Register user |
 | POST | `/api/auth/login` | Login user |
 | GET | `/api/products` | Get all products |
-| GET | `/api/products/suggestions` | Search suggestions |
+| GET | `/api/products/suggestions` | Live search suggestions |
 | GET | `/api/products/featured` | Get featured products |
 | POST | `/api/products` | Add product (Admin) |
 | POST | `/api/orders` | Place order + send email |
@@ -178,6 +190,7 @@ shopping-cart/
 | POST | `/api/wishlist/:id` | Add to wishlist |
 | DELETE | `/api/wishlist/:id` | Remove from wishlist |
 | POST | `/api/payments/create-link` | Create PayMongo payment |
+| POST | `/api/chat` | AI Chatbot (Groq + Llama 3.1) |
 
 ---
 
@@ -186,6 +199,7 @@ shopping-cart/
 **Ryan S. Carbonel**
 - Portfolio: [https://portfolio-three-delta-dzyn1fzefk.vercel.app](https://portfolio-three-delta-dzyn1fzefk.vercel.app)
 - GitHub: [https://github.com/Reffin](https://github.com/Reffin)
+- LinkedIn: [https://www.linkedin.com/in/ryan-carbonel-a2240b1a0](https://www.linkedin.com/in/ryan-carbonel-a2240b1a0)
 
 ---
 
