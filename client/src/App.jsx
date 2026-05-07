@@ -11,6 +11,7 @@ import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Admin from "./pages/Admin";
+import ChatBot from "./components/ChatBot";
 
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth();
